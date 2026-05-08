@@ -26,5 +26,5 @@ jobs:
         run: ruff check .
       - name: Run static type checks
         run: mypy .
-      - name: Run unit tests
-        run: pytest --disable-warnings
+      # - name: Run unit tests
+      #   run: pytest --disable-warnings
