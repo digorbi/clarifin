@@ -1,0 +1,11 @@
+[tool.mypy]
+strict = true
+python_version = "3.12"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "W", "I", "UP"]
+ignore = ["UP045"]
