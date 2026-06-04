@@ -1,0 +1,24 @@
+{
+  "bank": "Neobank",
+  "account_holders": ["THOMAS MÜLLER", "JANE MÜLLER"],
+  "transaction_count": 45,
+  "first_transaction": {
+    "date": "Mar 1, 2026",
+    "description_prefix": "CafeNord",
+    "amount": "-4.19"
+  },
+  "last_transaction": {
+    "date": "Mar 28, 2026",
+    "description_prefix": "Transfer from THOMAS MÜLLER",
+    "amount": "250.00"
+  },
+  "totals": {
+    "income": "1900.00",
+    "expenses": "1011.44"
+  },
+  "known_transactions": [
+    {"description_prefix": "Transfer from THOMAS MÜLLER", "amount": "250.00"},
+    {"description_prefix": "Transfer from THOMAS MÜLLER", "amount": "750.00"},
+    {"description_prefix": "Transfer from THOMAS MÜLLER", "amount": "900.00"}
+  ]
+}

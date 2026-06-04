@@ -1,3 +1,6 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [tool.mypy]
 strict = true
 python_version = "3.12"

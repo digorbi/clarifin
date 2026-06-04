@@ -1,0 +1,156 @@
+{
+  "skill_name": "bank-statement-processor",
+  "evals": [
+    {
+      "id": 1,
+      "name": "new-bank-single-month",
+      "prompt": "Parse my March 2026 Neobank statement at skill/evals/fixtures/statements/nb_0326.pdf and create a new budget Excel for me.",
+      "expected_output": "Excel with a 2026-03 tab, Settings tab with default categories, hidden _parsers sheet containing the generated Python parser, all transactions categorized, no uncategorized rows.",
+      "files": ["skill/evals/fixtures/statements/nb_0326.pdf"],
+      "assertions": [
+        {
+          "name": "parser_passes_ruff",
+          "description": "Generated parser has no ruff lint errors"
+        },
+        {
+          "name": "parser_passes_mypy",
+          "description": "Generated parser passes strict mypy type checking"
+        },
+        {
+          "name": "parser_self_test_passes",
+          "description": "Parser --self-test passes against the input PDF"
+        },
+        {
+          "name": "parser_has_required_structure",
+          "description": "Parser defines Transaction and Statement dataclasses, parse_pdf function, and _self_test"
+        },
+        {
+          "name": "excel_has_monthly_tab",
+          "description": "Excel contains a 2026-03 monthly tab"
+        },
+        {
+          "name": "excel_has_settings_tab",
+          "description": "Excel contains a Settings tab with at least one category"
+        },
+        {
+          "name": "excel_has_hidden_parser",
+          "description": "Excel has a hidden _parsers sheet with Python source code"
+        },
+        {
+          "name": "excel_all_transactions_categorized",
+          "description": "Every transaction row in 2026-03 has a non-empty category"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "joint-account-known-ground-truth",
+      "prompt": "I have a joint account PDF at skill/evals/fixtures/statements/joint_nb_0326.pdf — add it to my household budget Excel.",
+      "expected_output": "Excel with 2026-03 tab showing exactly 45 transactions, €1900.00 total income, €1011.44 total expenses, two account holders (THOMAS MÜLLER and JANE MÜLLER) captured in parser metadata.",
+      "files": ["skill/evals/fixtures/statements/joint_nb_0326.pdf"],
+      "assertions": [
+        {
+          "name": "parser_self_test_passes",
+          "description": "Parser identifies joint account format and parses 45 transactions"
+        },
+        {
+          "name": "excel_transaction_count_45",
+          "description": "Monthly tab has exactly 45 transaction rows"
+        },
+        {
+          "name": "excel_income_total_1900",
+          "description": "Sum of positive amounts in 2026-03 equals €1900.00"
+        },
+        {
+          "name": "excel_expense_total_1011_44",
+          "description": "Sum of negative amounts in 2026-03 equals €1011.44"
+        },
+        {
+          "name": "transactions_match_expected_json",
+          "description": "First transaction is CafeNord -€4.19 on Mar 1; last is Transfer +€250 on Mar 28"
+        },
+        {
+          "name": "excel_all_transactions_categorized",
+          "description": "All 45 rows have a non-empty category"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "deduplication-on-resubmit",
+      "prompt": "I already processed my Neobank statement last session. Here it is again: skill/evals/fixtures/statements/nb_0326.pdf. Update my budget Excel but don't add duplicate transactions.",
+      "expected_output": "Excel monthly tab has no duplicate rows. Skill reports 0 new transactions added (or skips gracefully). The existing parser is reused — no new parser generated.",
+      "files": ["skill/evals/fixtures/statements/nb_0326.pdf"],
+      "assertions": [
+        {
+          "name": "no_duplicate_transaction_rows",
+          "description": "Running the skill twice on the same PDF produces no duplicate rows in the monthly tab"
+        },
+        {
+          "name": "parser_reused_not_regenerated",
+          "description": "The _parsers sheet still has only one parser block for this bank (no duplicate blocks created)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "add-second-bank-to-existing-excel",
+      "prompt": "I already have a budget Excel with my Neobank data. Now I got a statement from another bank: skill/evals/fixtures/statements/ns_0326.pdf. Add it to my existing budget at skill/evals/fixtures/excel_states/after_march_nb/budget.xlsx.",
+      "expected_output": "Excel now has two parser blocks in _parsers (Neobank + new bank). March 2026 tab has more transactions than before. New parser passes ruff/mypy. No Neobank transactions duplicated.",
+      "files": [
+        "skill/evals/fixtures/statements/ns_0326.pdf",
+        "skill/evals/fixtures/excel_states/after_march_nb/budget.xlsx"
+      ],
+      "assertions": [
+        {
+          "name": "two_parsers_stored",
+          "description": "_parsers sheet now contains exactly 2 parser blocks (Neobank + new bank)"
+        },
+        {
+          "name": "new_parser_passes_ruff",
+          "description": "Newly generated parser has no ruff lint errors"
+        },
+        {
+          "name": "new_parser_passes_mypy",
+          "description": "Newly generated parser passes strict mypy"
+        },
+        {
+          "name": "new_parser_self_test_passes",
+          "description": "New parser --self-test passes against ns_0326.pdf"
+        },
+        {
+          "name": "march_tab_has_more_transactions",
+          "description": "2026-03 tab has more than 45 rows (original Neobank count)"
+        },
+        {
+          "name": "no_neobank_duplicates",
+          "description": "The 45 original Neobank transactions are not duplicated"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "add-new-month-to-existing-excel",
+      "prompt": "Here is my budget Excel with March already done: skill/evals/fixtures/excel_states/after_march_nb/budget.xlsx. I now have another statement from the same Neobank account: skill/evals/fixtures/statements/nb_0326.pdf. Add it — if it's a different month create a new tab, if it's already there skip duplicates.",
+      "expected_output": "If nb_0326.pdf is a different month: a new monthly tab is created, Neobank parser is reused (no new parser generated), _parsers still has 1 block. If same month: 0 new transactions added, no duplicates.",
+      "files": [
+        "skill/evals/fixtures/statements/nb_0326.pdf",
+        "skill/evals/fixtures/excel_states/after_march_nb/budget.xlsx"
+      ],
+      "assertions": [
+        {
+          "name": "parser_reused_not_regenerated",
+          "description": "_parsers still has exactly 1 parser block — existing Neobank parser was reused"
+        },
+        {
+          "name": "no_duplicate_transactions",
+          "description": "No transaction rows are duplicated across any monthly tab"
+        },
+        {
+          "name": "excel_all_transactions_categorized",
+          "description": "All transaction rows in all tabs have a non-empty category"
+        }
+      ]
+    }
+  ]
+}
